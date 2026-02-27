@@ -1,121 +1,186 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<style>
-  :root {
-    --ta-tum-red: #e30613; /* El rojo característico de Edelvives/Ta-tum */
-    --ta-tum-dark: #231f20;
-  }
+    <meta charset="UTF-8">
+    <title>Ta-tum Retro Pong</title>
+    <style>
+        :root {
+            --ta-tum-red: #e30613;
+            --ta-tum-dark: #231f20;
+            --neon-blue: #0ff;
+        }
 
-  body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f0f0f0;
-    margin: 0;
-  }
+        body {
+            background-color: #050505;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+        }
 
-  /* Contenedor Principal */
-  .logo-container {
-    position: relative;
-    width: 200px;
-    height: 200px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+        /* Contenedor del Logo de Inicio */
+        #overlay {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(5, 5, 5, 0.9);
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            justify-content: center;
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
 
-  /* El Sombrero del detective */
-  .hat {
-    width: 100px;
-    height: 40px;
-    background-color: var(--ta-tum-dark);
-    border-radius: 50px 50px 5px 5px;
-    position: relative;
-    z-index: 2;
-  }
+        /* CSS del Logo Ta-tum */
+        .hat { width: 80px; height: 30px; background: white; border-radius: 40px 40px 5px 5px; position: relative; }
+        .hat::after { content: ''; position: absolute; bottom: -5px; left: -10px; width: 100px; height: 8px; background: white; border-radius: 5px; }
+        .face-lupa { width: 60px; height: 60px; border: 10px solid white; border-radius: 50%; margin-top: 5px; position: relative; background: transparent; display: flex; justify-content: center; align-items: center; }
+        .handle { position: absolute; bottom: -20px; right: -8px; width: 10px; height: 30px; background: white; transform: rotate(-45deg); }
+        .eyes { width: 30px; display: flex; justify-content: space-between; }
+        .eye { width: 8px; height: 8px; background: white; border-radius: 50%; }
+        .logo-text { color: white; font-size: 40px; margin-top: 30px; font-weight: bold; }
+        .logo-text span { color: var(--ta-tum-red); }
+        .instruction { color: var(--neon-blue); margin-top: 20px; font-size: 14px; animation: blink 1s infinite; }
 
-  .hat::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: -15px;
-    width: 130px;
-    height: 10px;
-    background-color: var(--ta-tum-dark);
-    border-radius: 5px;
-  }
+        @keyframes blink { 50% { opacity: 0; } }
 
-  /* La cara / Lupa */
-  .face-lupa {
-    width: 80px;
-    height: 80px;
-    border: 12px solid var(--ta-tum-dark);
-    border-radius: 50%;
-    margin-top: 5px;
-    position: relative;
-    background-color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  /* El mango de la lupa (que hace de nariz/cuello) */
-  .handle {
-    position: absolute;
-    bottom: -25px;
-    right: -10px;
-    width: 12px;
-    height: 40px;
-    background-color: var(--ta-tum-dark);
-    transform: rotate(-45deg);
-    border-radius: 0 0 5px 5px;
-  }
-
-  /* Los ojos (estilo Ta-tum) */
-  .eyes {
-    width: 40px;
-    height: 15px;
-    display: flex;
-    justify-content: space-between;
-  }
-
-  .eye {
-    width: 12px;
-    height: 12px;
-    background-color: var(--ta-tum-dark);
-    border-radius: 50%;
-  }
-
-  /* El texto inferior */
-  .text {
-    margin-top: 40px;
-    font-family: 'Arial Black', sans-serif;
-    font-size: 32px;
-    color: var(--ta-tum-dark);
-    letter-spacing: -2px;
-  }
-
-  .text span {
-    color: var(--ta-tum-red);
-  }
-
-</style>
+        canvas {
+            border: 2px solid #333;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            cursor: none;
+        }
+    </style>
 </head>
 <body>
 
-<div class="logo-container">
-  <div class="hat"></div>
-  <div class="face-lupa">
-    <div class="eyes">
-      <div class="eye"></div>
-      <div class="eye"></div>
+<div id="overlay" onclick="startGame()">
+    <div class="hat"></div>
+    <div class="face-lupa">
+        <div class="eyes"><div class="eye"></div><div class="eye"></div></div>
+        <div class="handle"></div>
     </div>
-    <div class="handle"></div>
-  </div>
-  <div class="text">ta-<span>tum</span></div>
+    <div class="logo-text">ta-<span>tum</span></div>
+    <div class="instruction">HAZ CLIC PARA INVESTIGAR</div>
 </div>
 
+<canvas id="pongCanvas" width="800" height="400"></canvas>
+
+<script>
+    const canvas = document.getElementById("pongCanvas");
+    const ctx = canvas.getContext("2d");
+    const overlay = document.getElementById("overlay");
+
+    let gameRunning = false;
+    let wallGlow = 0;
+
+    const player = { x: 10, y: 160, score: 0, w: 10, h: 80 };
+    const ai = { x: 780, y: 160, score: 0, w: 10, h: 80 };
+    const ball = { x: 400, y: 200, dx: 5, dy: 5, size: 8 };
+
+    function startGame() {
+        overlay.style.opacity = "0";
+        setTimeout(() => {
+            overlay.style.display = "none";
+            gameRunning = true;
+            resetBall();
+        }, 500);
+    }
+
+    canvas.addEventListener("mousemove", (e) => {
+        let rect = canvas.getBoundingClientRect();
+        player.y = e.clientY - rect.top - player.h / 2;
+    });
+
+    function triggerGlow() { wallGlow = 25; }
+
+    function resetBall() {
+        ball.x = canvas.width / 2;
+        ball.y = canvas.height / 2;
+        ball.dx = (Math.random() > 0.5 ? 5 : -5);
+        ball.dy = (Math.random() > 0.5 ? 4 : -4);
+    }
+
+    function update() {
+        if (!gameRunning) return;
+
+        ball.x += ball.dx;
+        ball.y += ball.dy;
+
+        // Rebote paredes y brillo
+        if (ball.y <= 0 || ball.y + ball.size >= canvas.height) {
+            ball.dy *= -1;
+            triggerGlow();
+        }
+
+        // IA Detective
+        let targetY = ball.y - (ai.h / 2);
+        ai.y += (targetY - ai.y) * 0.12;
+
+        // Colisiones paletas
+        if (checkCol(ball, player) || checkCol(ball, ai)) {
+            ball.dx *= -1.05; // Aumenta velocidad poco a poco
+            triggerGlow();
+        }
+
+        // Puntos
+        if (ball.x < 0) { ai.score++; resetBall(); triggerGlow(); }
+        if (ball.x > canvas.width) { player.score++; resetBall(); triggerGlow(); }
+
+        if (wallGlow > 0) wallGlow -= 1.5;
+    }
+
+    function checkCol(b, p) {
+        return b.x < p.x + p.w && b.x + b.size > p.x && b.y < p.y + p.h && b.y + b.size > p.y;
+    }
+
+    function draw() {
+        ctx.fillStyle = "#050505";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Paredes Neón Ta-tum
+        if (wallGlow > 0) {
+            ctx.strokeStyle = `rgba(227, 6, 19, ${wallGlow / 25})`; // Brillo rojo Ta-tum
+            ctx.lineWidth = wallGlow / 2;
+            ctx.shadowBlur = wallGlow;
+            ctx.shadowColor = "#e30613";
+            ctx.strokeRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Red central
+        ctx.setLineDash([15, 15]);
+        ctx.strokeStyle = "#222";
+        ctx.beginPath(); ctx.moveTo(400,0); ctx.lineTo(400,400); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Dibujar Elementos
+        ctx.fillStyle = "white";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "white";
+        ctx.fillRect(player.x, player.y, player.w, player.h);
+        ctx.fillRect(ai.x, ai.y, ai.w, ai.h);
+        
+        // La bola es "el caso a resolver"
+        ctx.fillStyle = "#e30613";
+        ctx.shadowColor = "#e30613";
+        ctx.fillRect(ball.x, ball.y, ball.size, ball.size);
+
+        // Marcador
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "white";
+        ctx.font = "40px 'Courier New'";
+        ctx.fillText(player.score, 200, 60);
+        ctx.fillText(ai.score, 560, 60);
+
+        requestAnimationFrame(() => { update(); draw(); });
+    }
+
+    draw();
+</script>
 </body>
 </html>
