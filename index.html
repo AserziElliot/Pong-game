@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  :root {
+    --ta-tum-red: #e30613; /* El rojo característico de Edelvives/Ta-tum */
+    --ta-tum-dark: #231f20;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+  }
+
+  /* Contenedor Principal */
+  .logo-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* El Sombrero del detective */
+  .hat {
+    width: 100px;
+    height: 40px;
+    background-color: var(--ta-tum-dark);
+    border-radius: 50px 50px 5px 5px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hat::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: -15px;
+    width: 130px;
+    height: 10px;
+    background-color: var(--ta-tum-dark);
+    border-radius: 5px;
+  }
+
+  /* La cara / Lupa */
+  .face-lupa {
+    width: 80px;
+    height: 80px;
+    border: 12px solid var(--ta-tum-dark);
+    border-radius: 50%;
+    margin-top: 5px;
+    position: relative;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* El mango de la lupa (que hace de nariz/cuello) */
+  .handle {
+    position: absolute;
+    bottom: -25px;
+    right: -10px;
+    width: 12px;
+    height: 40px;
+    background-color: var(--ta-tum-dark);
+    transform: rotate(-45deg);
+    border-radius: 0 0 5px 5px;
+  }
+
+  /* Los ojos (estilo Ta-tum) */
+  .eyes {
+    width: 40px;
+    height: 15px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .eye {
+    width: 12px;
+    height: 12px;
+    background-color: var(--ta-tum-dark);
+    border-radius: 50%;
+  }
+
+  /* El texto inferior */
+  .text {
+    margin-top: 40px;
+    font-family: 'Arial Black', sans-serif;
+    font-size: 32px;
+    color: var(--ta-tum-dark);
+    letter-spacing: -2px;
+  }
+
+  .text span {
+    color: var(--ta-tum-red);
+  }
+
+</style>
+</head>
+<body>
+
+<div class="logo-container">
+  <div class="hat"></div>
+  <div class="face-lupa">
+    <div class="eyes">
+      <div class="eye"></div>
+      <div class="eye"></div>
+    </div>
+    <div class="handle"></div>
+  </div>
+  <div class="text">ta-<span>tum</span></div>
+</div>
+
+</body>
+</html>
